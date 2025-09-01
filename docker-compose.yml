@@ -1,0 +1,131 @@
+﻿services:                     # Deklariše kolekciju servisa (kontejnera) u ovom compose projektu.
+
+  bank.api:                   # Ime servisa (u mreži će mu DNS ime biti 'bank.api').
+    image: ${DOCKER_REGISTRY-}bankapi
+                              # Tag ime za image koji će se koristiti/kreirati.
+                              # ${DOCKER_REGISTRY-} je Compose substitucija varijable okoline:
+                              #  - ako je DOCKER_REGISTRY postavljen (npr. "myreg/"), prefiks će se dodati
+                              #  - ako NIJE postavljen, uzet će se prazna vrijednost (zato je minus na kraju) → ostaje "bankapi".
+    build:
+      context: .              # Build kontekst je cijeli repo (folder sa Dockerfile-ovima i kodom).
+      dockerfile: Bank.API/Dockerfile
+                              # Put do Dockerfile-a za ovaj servis. Na osnovu njega se gradi image.
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      sqlserver:
+        condition: service_started   # vidi napomenu o healthchecku ispod
+      seq:
+        condition: service_started
+    ports:
+      - "8080:8080" 
+    # (opcija) – nakon što dodaš servise ispod, možeš dodati i env/depends_on:
+    # environment:
+    #   - ConnectionStrings__Default=Server=sqlserver;Database=BankDb;User ID=sa;Password=Your_password123;TrustServerCertificate=True
+    #   - Redis__Configuration=redis:6379
+    #   - MessageBroker__Host=rabbitmq
+    #   - Serilog__WriteTo__1__Name=Seq
+    #   - Serilog__WriteTo__1__Args__serverUrl=http://seq
+                              # (KOMENTAR) environment: unosi varijable okoline u kontejner.
+                              # Kod .NET-a dvostruki underscore __ mapira u sekcije appsettings-a (npr. ConnectionStrings:Default).
+                              # Imena hostova (sqlserver, redis, rabbitmq, seq) su DNS imena drugih servisa u Compose mreži.
+    # depends_on:
+    #   sqlserver:
+    #     condition: service_healthy
+    #   redis:
+    #     condition: service_started
+    #   rabbitmq:
+    #     condition: service_started
+    #   seq:
+    #     condition: service_started
+    #   minio:
+    #     condition: service_started
+                              # (KOMENTAR) depends_on određuje red pokretanja/čekanja:
+                              #   - service_healthy: čekaj dok healthcheck servisa bude "healthy" (npr. SQL).
+                              #   - service_started: samo da je proces startao (bez healthcheck-a).
+                              # Radi sa modernim Docker Compose pluginom; ako tvoje okruženje to ne podrži,
+                              # app treba imati retry logiku.
+
+  bank.blazor:                # Drugi servis – Blazor web-app.
+    image: ${DOCKER_REGISTRY-}bankblazor
+    build:
+      context: .
+      dockerfile: Bank.Blazor/Dockerfile
+                              # Isto kao gore, samo drugi Dockerfile/projekat.
+    environment:
+      - ASPNETCORE_URLS=http://+:8090
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - bank.api
+    ports:
+      - "8090:8090"
+
+  bank.workers:               # Treći servis – .NET Worker proces(i).
+    image: ${DOCKER_REGISTRY-}bankworkers
+    build:
+      context: .
+      dockerfile: Bank.Workers/Dockerfile
+    depends_on:
+      - rabbitmq
+      - seq
+
+  sqlserver:                  # Prateći servis: Microsoft SQL Server 2022 u kontejneru.
+    image: mcr.microsoft.com/mssql/server:2022-latest
+                              # Koristi gotovu (prebuilt) sliku iz Microsoft Container Registry.
+    environment:
+      - ACCEPT_EULA=Y         # Prihvata MS EULA (obavezno za start).
+      - SA_PASSWORD=Your_password123
+                              # Postavlja lozinku za login 'sa' (DEVELOPMENT only – promijeni kasnije).
+    ports:
+      - "14333:1433"          # MAPIRANJE: host 14333 → container 1433 (default SQL port u kontejneru).
+                              # Van kontejnera pristupaš na localhost:14333; iz drugih servisa: 'sqlserver:1433' ili samo 'sqlserver'.
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost,1433", "-U", "sa", "-P", "Your_password123", "-C", "-Q", "SELECT 1"]
+                              # Healthcheck komanda se izvršava UNUTAR SQL kontejnera; spaja se na sopstveni 1433 i radi SELECT 1.
+                              # "-C" (trust cert) za sqlcmd 18.
+      interval: 10s           # Ponavlja provjeru svake 10s …
+      retries: 10             # … do 10 pokušaja prije nego proglasi 'unhealthy'.
+    volumes:
+      - mssql-data:/var/opt/mssql
+                              # Named volume za trajne DB fajlove (da podaci ne nestanu kad kontejner stane).
+
+  redis:                      # Redis 7 – in-memory cache/pub-sub.
+    image: redis:7
+    ports:
+      - "6379:6379"           # Izlaže Redis na host port 6379; u mreži se koristi 'redis:6379'.
+
+  rabbitmq:                   # RabbitMQ sa management UI-jem.
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"           # AMQP port (za app konekcije).
+      - "15672:15672"         # Web UI (http://localhost:15672, guest/guest po defaultu).
+
+  seq:                        # Seq – centralizacija logova (Serilog sink).
+    image: datalust/seq:2024
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "5341:5341"           # Ingestion endpoint – appovi šalju logove ovdje.
+      - "8081:80"             # Web UI na http://localhost:8081 (mapirano sa container port 80).
+    volumes:
+      - seq-data:/data        # Trajna pohrana konfiguracije i podataka Seq-a.
+
+  minio:                      # MinIO – S3 kompatibilan storage.
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+                              # Override default CMD: starta MinIO server, čuva podatke u /data i izlaže web konzolu na 9001.
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+                              # Root kredencijali za login u konzolu i korištenje S3 API-a (DEV vrijednosti).
+    ports:
+      - "9000:9000"           # S3 API endpoint (http://localhost:9000).
+      - "9001:9001"           # Web konzola (http://localhost:9001).
+    volumes:
+      - minio-data:/data      # Trajna pohrana objekata/bucket-a.
+
+volumes:                      # Deklaracija named volumena (kreiraju se jednom i žive mimo kontejnera).
+  mssql-data:                 # Za SQL Server (DB fajlovi).
+  seq-data:                   # Za Seq (logovi/konfiguracija).
+  minio-data:                 # Za MinIO (objekti).
