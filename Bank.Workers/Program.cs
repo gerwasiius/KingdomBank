@@ -1,34 +1,41 @@
-﻿using Bank.Workers;
+﻿using Bank.App.Security;
+using Bank.App.Security.Interfaces;
+using Bank.Infrastructure;
+using Bank.Infrastructure.Security;
+using Bank.Workers;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// 1) Konfiguriši Serilog (čita iz appsettings.*, Console sink, itd.)
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .CreateLogger();
 
-// 2) Uveži Serilog u Microsoft logging pipeline
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(dispose: true);
 
-// 3) Tvoj worker
-builder.Services.AddHostedService<Worker>();
+// EF (DB-first)
+builder.Services.AddDbContext<BankDbContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("Sql")));
+
+// Generatori ključeva
+builder.Services.AddSingleton<IKeyGenerator, RsaKeyGenerator>();
+builder.Services.AddSingleton<IKeyGenerator, EcdsaKeyGenerator>();
+
+// Vault (DEV)
+builder.Services.AddSingleton<FileKeyVault>();
+builder.Services.AddSingleton<IKeyVault>(sp => sp.GetRequiredService<FileKeyVault>());
+
+// Repo (EF)
+builder.Services.AddScoped<IKeyRotationRepository, KeyRotationEfRepository>();
+
+// Worker
+builder.Services.AddHostedService<KeyRotationWorker>();
 
 var host = builder.Build();
-
-try
-{
-    Log.Information("Starting worker host");
-    host.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Host terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
-}
+try { Log.Information("Starting worker host"); host.Run(); }
+catch (Exception ex) { Log.Fatal(ex, "Host terminated unexpectedly"); }
+finally { Log.CloseAndFlush(); }

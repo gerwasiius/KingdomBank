@@ -13,6 +13,10 @@
     environment:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - keys-data:apps/keys   # Named volume za trajno čuvanje ključeva (direktorij u kontejneru /keys).
+                              # (opcija) – možeš dodati i više volumena, npr. za SSL certifikate, konfiguracije i sl.
+                              # Volumeni se deklariraju na kraju compose fajla.
     depends_on:
       sqlserver:
         condition: service_started   # vidi napomenu o healthchecku ispod
@@ -66,6 +70,8 @@
     build:
       context: .
       dockerfile: Bank.Workers/Dockerfile
+    volumes:
+      - keys-data:apps/keys
     depends_on:
       - rabbitmq
       - seq

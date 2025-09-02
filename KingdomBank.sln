@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36221.1 d17.14
+VisualStudioVersion = 17.14.36221.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bank.Blazor", "Bank.Blazor\Bank.Blazor.csproj", "{4404A1A5-02D8-4461-8280-9CE0DF1E3128}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bank.Tests", "Bank.Tests\Bank.Tests.csproj", "{DDEA8466-A61E-4B9F-BAC1-2E59CE8EAE1C}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bank.DatabaseStorage", "..\Bank.DatabaseStorage\Bank.DatabaseStorage.csproj", "{F3F9B59B-9AA8-4D0C-901B-D89BF3A56382}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3F9B59B-9AA8-4D0C-901B-D89BF3A56382}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3F9B59B-9AA8-4D0C-901B-D89BF3A56382}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3F9B59B-9AA8-4D0C-901B-D89BF3A56382}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3F9B59B-9AA8-4D0C-901B-D89BF3A56382}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

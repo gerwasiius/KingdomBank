@@ -1,4 +1,6 @@
+using Bank.App.Security.Interfaces;
 using Bank.Infrastructure;
+using Bank.Infrastructure.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +22,11 @@ builder.Services.AddSwaggerGen();
 // EF Core
 builder.Services.AddDbContext<BankDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Sql")));
+
+builder.Services.AddSingleton<FileKeyVault>();
+builder.Services.AddSingleton<IKeyVault>(sp => sp.GetRequiredService<FileKeyVault>());
+builder.Services.AddScoped<IKeyRotationRepository, KeyRotationEfRepository>();
+
 
 // HealthChecks
 builder.Services.AddHealthChecks()

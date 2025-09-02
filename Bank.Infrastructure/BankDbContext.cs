@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Bank.Infrastructure.Entities;
+using Bank.Infrastructure.EntityConfigs;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +13,11 @@ namespace Bank.Infrastructure
     {
         public BankDbContext(DbContextOptions<BankDbContext> options) : base(options) { }
 
+        public DbSet<KeyRotationEntity> KeyRotation => Set<KeyRotationEntity>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new KeyRotationConfig());
             base.OnModelCreating(modelBuilder);
         }
     }
