@@ -1,5 +1,6 @@
-﻿using Bank.App.Security;
-using Bank.App.Security.Interfaces;
+﻿using Bank.App.Identity.Security.Interfaces;
+using Bank.App.Identity.Security.Models;
+using Bank.Infrastructure.Identity.KeyVault;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -71,7 +72,7 @@ namespace Bank.Workers
 
                         // Private ključ u vault (/keys/...), public JWK u fajl (ako je FileKeyVault)
                         await _vault.StorePrivateKeyAsync(desc, privPem, stoppingToken);
-                        if (_vault is Bank.Infrastructure.Security.FileKeyVault fkv)
+                        if (_vault is FileKeyVault fkv)
                             await fkv.StorePublicJwkAsync(desc, jwk, stoppingToken);
 
                         await repo.InsertAsync(desc, "active", stoppingToken);

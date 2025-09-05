@@ -1,6 +1,8 @@
-using Bank.App.Security.Interfaces;
+using Bank.App.Identity.Security.Interfaces;
 using Bank.Infrastructure;
-using Bank.Infrastructure.Security;
+using Bank.Infrastructure.Identity.Ef;
+using Bank.Infrastructure.Identity.KeyVault;
+using Bank.Infrastructure.Identity.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

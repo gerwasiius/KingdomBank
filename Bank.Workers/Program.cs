@@ -1,7 +1,9 @@
-﻿using Bank.App.Security;
-using Bank.App.Security.Interfaces;
+﻿using Bank.App.Identity.Security.Interfaces;
+using Bank.App.Identity.Security.Services;
 using Bank.Infrastructure;
-using Bank.Infrastructure.Security;
+using Bank.Infrastructure.Identity.Ef;
+using Bank.Infrastructure.Identity.KeyVault;
+using Bank.Infrastructure.Identity.Repositories;
 using Bank.Workers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
