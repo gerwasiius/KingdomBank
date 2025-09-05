@@ -10,7 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Bank.Domain\Bank.Domain.csproj" />
     <ProjectReference Include="..\Bank.Shared\Bank.Shared.csproj" />
-    <ProjectReference Include="..\Bank.App\Bank.App.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

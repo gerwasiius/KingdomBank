@@ -1,4 +1,6 @@
 using Bank.App.Identity.Security.Interfaces;
+using Bank.App.Identity.Security.Models;
+using Bank.App.Identity.Security.Services;
 using Bank.Infrastructure;
 using Bank.Infrastructure.Identity.Ef;
 using Bank.Infrastructure.Identity.KeyVault;
@@ -28,6 +30,11 @@ builder.Services.AddDbContext<BankDbContext>(opt =>
 builder.Services.AddSingleton<FileKeyVault>();
 builder.Services.AddSingleton<IKeyVault>(sp => sp.GetRequiredService<FileKeyVault>());
 builder.Services.AddScoped<IKeyRotationRepository, KeyRotationEfRepository>();
+//builder.Services.AddScoped<ITokenService, TokenService>();
+//builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+//builder.Services.AddSingleton<ISecureRandom, SecureRandom>();
+
+builder.Services.Configure<TokenOptions>(builder.Configuration.GetSection("TokenOptions"));
 
 
 // HealthChecks
