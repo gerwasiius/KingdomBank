@@ -75,8 +75,12 @@
     volumes:
       - keys-data:/keys
     depends_on:
-      - rabbitmq
-      - seq
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      seq:
+        condition: service_started
 
   sqlserver:                  # Prateći servis: Microsoft SQL Server 2022 u kontejneru.
     image: mcr.microsoft.com/mssql/server:2022-latest
