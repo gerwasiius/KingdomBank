@@ -1,6 +1,5 @@
-﻿using Bank.Workers.Interfaces;
-using Bank.Workers.Models;
-using Bank.Workers.Services;
+﻿using Identity.Worker.Models;
+using Identity.Worker.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,8 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Identity.Worker.Services;
 
-namespace Bank.Workers
+namespace Identity.Worker
 {
     public sealed class KeyRotationWorker : BackgroundService
     {
@@ -40,8 +40,8 @@ namespace Bank.Workers
             var algo = (_cfg.GetValue<string>("KeyManagement:Algorithm") ?? "RS256") == "ES256"
                 ? KeyAlgorithm.ES256 : KeyAlgorithm.RS256;
 
-            var rotationDays = _cfg.GetValue<int>("KeyManagement:RotationDays", 90);
-            var graceDays = _cfg.GetValue<int>("KeyManagement:GraceDays", 30);
+            var rotationDays = _cfg.GetValue("KeyManagement:RotationDays", 90);
+            var graceDays = _cfg.GetValue("KeyManagement:GraceDays", 30);
             var prefix = _cfg.GetValue<string>("KeyManagement:KidPrefix") ?? "bank";
 
             var generator = _generators.First(g => g.Algorithm == algo);

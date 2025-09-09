@@ -1,0 +1,21 @@
+﻿using Identity.API.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Identity.API.Data.EntityConfigs
+{
+    public sealed class EmailVerificationTokenConfig : IEntityTypeConfiguration<EmailVerificationTokenEntity>
+    {
+        public void Configure(EntityTypeBuilder<EmailVerificationTokenEntity> b)
+        {
+            b.ToTable("EmailVerificationTokens", "dbo");
+            b.HasKey(x => x.Id).HasName("PK_EmailVerify");
+            b.HasIndex(x => new { x.UserId, x.ExpiresAt }).HasDatabaseName("IX_EmailVerify_User_Exp");
+        }
+    }
+}

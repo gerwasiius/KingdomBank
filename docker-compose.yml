@@ -1,14 +1,14 @@
-﻿services:                     # Deklariše kolekciju servisa (kontejnera) u ovom compose projektu.
+services:                     # Deklariše kolekciju servisa (kontejnera) u ovom compose projektu.
 
-  bank.api:                   # Ime servisa (u mreži će mu DNS ime biti 'bank.api').
-    image: ${DOCKER_REGISTRY-}bankapi
+  identity.api:                   # Ime servisa (u mreži će mu DNS ime biti 'bank.api').
+    image: ${DOCKER_REGISTRY-}identityapi
                               # Tag ime za image koji će se koristiti/kreirati.
                               # ${DOCKER_REGISTRY-} je Compose substitucija varijable okoline:
                               #  - ako je DOCKER_REGISTRY postavljen (npr. "myreg/"), prefiks će se dodati
                               #  - ako NIJE postavljen, uzet će se prazna vrijednost (zato je minus na kraju) → ostaje "bankapi".
     build:
       context: .              # Build kontekst je cijeli repo (folder sa Dockerfile-ovima i kodom).
-      dockerfile: Bank.API/Dockerfile
+      dockerfile: Identity.API/Dockerfile
                               # Put do Dockerfile-a za ovaj servis. Na osnovu njega se gradi image.
     environment:
       - ASPNETCORE_URLS=http://+:8080
@@ -62,15 +62,15 @@
       - ASPNETCORE_URLS=http://+:8090
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
-      - bank.api
+      - identity.api
     ports:
       - "8090:8090"
 
-  bank.workers:               # Treći servis – .NET Worker proces(i).
-    image: ${DOCKER_REGISTRY-}bankworkers
+  identity.worker:               # Treći servis – .NET Worker proces(i).
+    image: ${DOCKER_REGISTRY-}identityworker
     build:
       context: .
-      dockerfile: Bank.Workers/Dockerfile
+      dockerfile: Identity.Worker/Dockerfile
     user: "0:0"
     volumes:
       - keys-data:/keys
@@ -142,4 +142,6 @@ volumes:                      # Deklaracija named volumena (kreiraju se jednom i
   seq-data:                   # Za Seq (logovi/konfiguracija).
   minio-data:                 # Za MinIO (objekti).
   keys-data:
+
+
 

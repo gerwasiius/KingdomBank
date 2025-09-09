@@ -1,11 +1,11 @@
-﻿using Bank.Workers;
-using Bank.Workers.Data;
-using Bank.Workers.Interfaces;
-using Bank.Workers.Repositories;
-using Bank.Workers.Services;
+﻿using Identity.Worker.Repositories;
+using Identity.Worker;
+using Identity.Worker.Data;
+using Identity.Worker.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Identity.Worker.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 
